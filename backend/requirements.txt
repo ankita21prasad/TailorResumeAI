@@ -1,0 +1,6 @@
+flask
+flask-Cors
+python-dotenv
+PyMuPDF
+pdfminer.six
+google-genai

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TailorAI</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <h1>TailorAI - Job Application Helper</h1>
+
+    <div>
+        <label for="jobDescription">Job Description:</label>
+        <textarea id="jobDescription" rows="5" cols="40"></textarea>
+    </div>
+
+    <div>
+        <label for="resumeUpload">Resume:</label>
+        <input type="file" id="resumeUpload" accept=".pdf,.txt">
+    </div>
+
+    <button id="analyzeButton">Analyze</button>
+
+    <div id="outputSection" style="margin-top: 20px;">
+        <h2>Results</h2>
+        <div id="skillsMatched"></div>
+        <div id="missingSkills"></div>
+        <div id="coverLetter">
+            <textarea id="coverLetterText" rows="10" cols="40"></textarea>
+            <div>
+                <button id="copyButton">Copy</button>
+                <button id="downloadButton">Download</button>
+                <button id="emailButton">Email</button>
+            </div>
+        </div>
+        <div id="resumeImprovements"></div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
