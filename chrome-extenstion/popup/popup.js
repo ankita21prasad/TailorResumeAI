@@ -13,31 +13,25 @@ document.addEventListener('DOMContentLoaded', function() {
     analyzeButton.addEventListener('click', async () => {
         const jobText = jobDescriptionInput.value;
         const resumeFile = resumeUploadInput.files[0];
-        console.log(resumeFile)
+        // const preferences = JSON.parse(preferencesInput.value); // Parse user preferences
+        const preferences = {
+            "preferred_resume_tone": preferred_resume_tone.value,
+            "what_to_highlight_most": what_to_highlight_most.value,
+            "current_experience_level": current_experience_level.value,
+            "personal_style_preferences": personal_style_preferences.value
+        };
 
-        // --- 1. Parse Job Description ---
-        const jdData = await parseJobDescription(jobText);
-        console.log("jddata", jdData);
+        // --- Store User Preferences ---
+        await storeUserPreferences(preferences);
 
-        // --- 2. Upload and Parse Resume ---
-        const resumeText = await uploadResume(resumeFile);
-        console.log("resumetext", resumeText);
-
-        // --- 3. Match Skills ---
-        const skillsData = await matchSkills(resumeText, jdData);
-        console.log("skills: ", skillsData)
-
-        // --- 4. Generate Cover Letter ---
-        const coverLetter = await generateCoverLetter(resumeText, jdData, skillsData.matched_skills);
-
-        // --- 5. Suggest Resume Improvements ---
-        const resumeEdits = await suggestResumeImprovements(resumeText, jdData);
+        // --- Process Job Application ---
+        const results = await processJobApplication(jobText, resumeFile);
 
         // --- Update UI ---
-        skillsMatchedDiv.textContent = 'Matched Skills: ' + skillsData.matched_skills.join(', ');
-        missingSkillsDiv.textContent = 'Missing Skills: ' + skillsData.missing_skills.join(', ');
-        coverLetterTextarea.value = coverLetter;
-        resumeImprovementsDiv.textContent = 'Resume Improvements: ' + resumeEdits;
+        skillsMatchedDiv.textContent = 'Matched Skills: ' + results.matched_skills.join(', ');
+        missingSkillsDiv.textContent = 'Missing Skills: ' + results.missing_skills.join(', ');
+        coverLetterTextarea.value = results.cover_letter;
+        resumeImprovementsDiv.textContent = 'Resume Improvements: ' + results.resume_improvements;
     });
 
     copyButton.addEventListener('click', () => {
@@ -69,80 +63,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Helper Functions ---
-    async function parseJobDescription(jobText) {
-        const response = await fetch('http://127.0.0.1:5000/parse-job-description', {
+    async function storeUserPreferences(preferences) {
+        const response = await fetch('http://127.0.0.1:5000/get-user-preferences', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ job_text: jobText })
+            body: JSON.stringify(preferences)
         });
         return await response.json();
     }
 
-    async function uploadResume(resumeFile) {
-        try {
-            const formData = new FormData();
-            formData.append('resume', resumeFile);
-            console.log("formdata", formData);
-    
-            const response = await fetch('http://127.0.0.1:5000/upload-resume', {
-                method: 'POST',
-                body: formData
-            });
-            console.log(response);
-    
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status} ${response.statusText}`);
-            }
-    
-            // Try to parse JSON first, fall back to plain text
-            const contentType = response.headers.get('content-type') || '';
-            if (contentType.includes('application/json')) {
-                const data = await response.json();
-                return data.resume_text || data; // Adjust this based on your backend response
-            } else {
-                const text = await response.text();
-                return text;
-            }
-        } catch (error) {
-            console.error('Resume upload failed:', error);
-            return null;
-        }
-    }    
+    async function processJobApplication(jobText, resumeFile) {
+        const formData = new FormData();
+        formData.append('resume', resumeFile);
+        formData.append('job_text', jobText);
+        console.log(formData)
 
-    async function matchSkills(resumeText, jdData) {
-        const response = await fetch('http://127.0.0.1:5000/match-skills', {
+        const response = await fetch('http://127.0.0.1:5000/process-job-application', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ resume_data: resumeText, jd_data: jdData })
+            body: formData
         });
         return await response.json();
-    }
-
-    async function generateCoverLetter(resumeText, jdData, matchedSkills) {
-        const response = await fetch('http://127.0.0.1:5000/generate-cover-letter', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ resume_data: resumeText, jd_data: jdData, matched_skills: matchedSkills })
-        });
-        const data = await response.json();
-        return data.cover_letter;
-    }
-
-    async function suggestResumeImprovements(resumeText, jdData) {
-        const response = await fetch('http://127.0.0.1:5000/suggest-resume-edits', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ resume_data: resumeText, jd_data: jdData })
-        });
-        const data = await response.json();
-        return data.suggestions;
     }
 });

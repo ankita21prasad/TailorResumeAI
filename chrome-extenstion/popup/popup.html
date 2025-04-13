@@ -6,7 +6,32 @@
 </head>
 <body>
     <h1>TailorAI - Job Application Helper</h1>
-
+    <div style="padding-bottom: 10px;">
+        <fieldset style="padding-bottom: 5px;">
+            <legend><strong>Your Preferences</strong></legend>
+        
+            <div class="form-group">
+              <label for="preferred_resume_tone">Preferred Resume Tone:</label>
+              <textarea id="preferred_resume_tone" rows="1" cols="50" placeholder="Technical, Formal, Friendly" style="font-size: 10px;">Formal</textarea>
+            </div>
+        
+            <div class="form-group">
+              <label for="what_to_highlight_most">Highlight Focus:</label>
+              <textarea id="what_to_highlight_most" rows="1" cols="50" placeholder="Achievements, Skills, Projects" style="font-size: 10px;"">Skills</textarea>
+            </div>
+        
+            <div class="form-group">
+              <label for="current_experience_level">Experience Level:</label>
+              <textarea id="current_experience_level" rows="1" cols="50" placeholder="Entry, Mid, Senior" style="font-size: 10px;">Mid</textarea>
+            </div>
+        
+            <div class="form-group">
+              <label for="personal_style_preferences">Personal Style Preferences:</label>
+              <textarea id="personal_style_preferences" rows="1" cols="50" placeholder="Clean formatting, Quantified results, Buzzwords" style="font-size: 10px;">Quantified Results</textarea>
+            </div>
+          </fieldset> 
+    </div>
+<div>
     <div>
         <label for="jobDescription">Job Description:</label>
         <textarea id="jobDescription" rows="5" cols="40"></textarea>
@@ -16,6 +41,7 @@
         <label for="resumeUpload">Resume:</label>
         <input type="file" id="resumeUpload" accept=".pdf,.txt">
     </div>
+</div>
 
     <button id="analyzeButton">Analyze</button>
 
