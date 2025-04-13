@@ -13,15 +13,19 @@ document.addEventListener('DOMContentLoaded', function() {
     analyzeButton.addEventListener('click', async () => {
         const jobText = jobDescriptionInput.value;
         const resumeFile = resumeUploadInput.files[0];
+        console.log(resumeFile)
 
         // --- 1. Parse Job Description ---
         const jdData = await parseJobDescription(jobText);
+        console.log("jddata", jdData);
 
         // --- 2. Upload and Parse Resume ---
         const resumeText = await uploadResume(resumeFile);
+        console.log("resumetext", resumeText);
 
         // --- 3. Match Skills ---
         const skillsData = await matchSkills(resumeText, jdData);
+        console.log("skills: ", skillsData)
 
         // --- 4. Generate Cover Letter ---
         const coverLetter = await generateCoverLetter(resumeText, jdData, skillsData.matched_skills);
@@ -77,16 +81,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function uploadResume(resumeFile) {
-        const formData = new FormData();
-        formData.append('resume', resumeFile);
-
-        const response = await fetch('http://127.0.0.1:5000/upload-resume', {
-            method: 'POST',
-            body: formData
-        });
-        const data =  await response.json();
-        return data.resume_text;
-    }
+        try {
+            const formData = new FormData();
+            formData.append('resume', resumeFile);
+            console.log("formdata", formData);
+    
+            const response = await fetch('http://127.0.0.1:5000/upload-resume', {
+                method: 'POST',
+                body: formData
+            });
+            console.log(response);
+    
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            }
+    
+            // Try to parse JSON first, fall back to plain text
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+                return data.resume_text || data; // Adjust this based on your backend response
+            } else {
+                const text = await response.text();
+                return text;
+            }
+        } catch (error) {
+            console.error('Resume upload failed:', error);
+            return null;
+        }
+    }    
 
     async function matchSkills(resumeText, jdData) {
         const response = await fetch('http://127.0.0.1:5000/match-skills', {
