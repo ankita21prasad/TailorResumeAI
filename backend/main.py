@@ -33,9 +33,9 @@ def process_job_application():
 
     # 1. Perception Layer
     jd_data = perception.parse_job_description(job_text)
-    print(jd_data)
+    print("JD data", jd_data)
     resume_text = perception.parse_resume(resume_file)
-    print(resume_text)
+    print("Resume text", resume_text)
 
     # 2. Memory Layer
     user_preferences = user_memory.retrieve('user_preferences')
