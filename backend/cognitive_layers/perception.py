@@ -18,28 +18,51 @@ def parse_job_description(job_text):
     Extract information from the job description using Gemini.
     """
     prompt = f"""
-    Extract the following information from the job description:
-    - Skills (as a list)
-    - Responsibilities (as a list)
-    - Tone (e.g., Formal, Informal)
-    - Company Values (as a list)
+You are an information extraction assistant. Your task is to extract structured data from job descriptions using careful step-by-step reasoning.
 
-    Job Description:
-    {job_text}
+Instructions:
+1. First, read the job description carefully.
+2. Identify relevant skills and responsibilities. Group them logically and clearly.
+3. Determine the overall tone (e.g., Formal, Informal, Technical, Friendly).
+4. Extract any statements about company values or culture.
+5. Perform a quick self-check to verify your interpretation is consistent with the content.
+6. If you are unsure about any section, leave it empty or include "unsure".
 
-    Return a JSON object.
-    """
+Do not include any extra commentary or markdown (e.g., no ```json or explanation).
+
+Job Description: {job_text}
+
+Before responding, think through each section carefully. Clearly separate your reasoning process from the final output using this structure:
+Return the output in this JSON format: 
+{{
+  "skills": [],
+  "responsibilities": [],
+  "tone": "",
+  "company_values": []
+}}
+Do not include any extra commentary or markdown (e.g., no ```json or explanation).
+"""
 
     response = client.models.generate_content(
                     model="gemini-2.0-flash",
                     contents=prompt
                 )
-    text = re.sub(r"^```(?:json)?\n|```$", "", response.text.strip(), flags=re.MULTILINE)
+    # Extract everything after "Final JSON output:" that looks like JSON
+    print("===================================================")
+    # print(response)
     try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        print(f"Error decoding JSON: {text}")
-        return {}
+        return json.loads(response.text)
+    except:
+        match = re.search(r"Final JSON output:\s*(\{.*\})", response.text, re.DOTALL)
+        if not match:
+            match = re.search(r"```json\s*([\s\S]*?)\s*```", response.text)
+        if match:
+            json_text = match.group(1)
+        try:
+            return json.loads(json_text)
+        except json.JSONDecodeError:
+            print(f"⚠️ Error decoding JSON from extracted text:\n{json_text}")
+            return {response.text}
 
 def parse_resume(resume_file):
     try:

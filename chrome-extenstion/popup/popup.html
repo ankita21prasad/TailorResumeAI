@@ -44,6 +44,11 @@
 </div>
 
     <button id="analyzeButton">Analyze</button>
+    <div id="loading" style="display: none; text-align: center; margin-top: 20px; font-style: italic;">
+        <div class="spinner"></div>
+        <div class="loading-text">Analyzing job description...</div>
+    </div>
+    
 
     <div id="outputSection" style="margin-top: 20px;">
         <h2>Results</h2>
@@ -57,7 +62,7 @@
                 <button id="emailButton">Email</button>
             </div>
         </div>
-        <div id="resumeImprovements"></div>
+        <div id="resumeImprovements" style="margin-top: 20px;"></div>
     </div>
 
     <script src="popup.js"></script>

@@ -9,6 +9,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const copyButton = document.getElementById('copyButton');
     const downloadButton = document.getElementById('downloadButton');
     const emailButton = document.getElementById('emailButton');
+    const loadingDiv = document.getElementById('loading');
+    const loadingText = loadingDiv.querySelector('.loading-text');
+
+    const loadingMessages = [
+        "Analyzing job description...",
+        "Scanning resume...",
+        "Matching skills with role requirements...",
+        "Identifying key achievements...",
+        "Reviewing experience highlights...",
+        "Crafting personalized suggestions...",
+        "Checking alignment with job criteria...",
+        "Finalizing your tailored application...",
+        "Almost done...",
+        "Crafting suggestions...",
+        "Almost done..."
+    ];
+
+    let loadingMessageIndex = 0;
+    let loadingInterval = null;
 
     analyzeButton.addEventListener('click', async () => {
         const jobText = jobDescriptionInput.value;
@@ -23,15 +42,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- Store User Preferences ---
         await storeUserPreferences(preferences);
+        // --- Show Loading Buffer ---
+        showLoading();
+        try {
+            // --- Process Job Application ---
+            const results = await processJobApplication(jobText, resumeFile);
 
-        // --- Process Job Application ---
-        const results = await processJobApplication(jobText, resumeFile);
-
-        // --- Update UI ---
-        skillsMatchedDiv.textContent = 'Matched Skills: ' + results.matched_skills.join(', ');
-        missingSkillsDiv.textContent = 'Missing Skills: ' + results.missing_skills.join(', ');
-        coverLetterTextarea.value = results.cover_letter;
-        resumeImprovementsDiv.textContent = 'Resume Improvements: ' + results.resume_improvements;
+            // --- Update UI ---
+            skillsMatchedDiv.textContent = 'Matched Skills: ' + results.matched_skills.join(', ');
+            missingSkillsDiv.textContent = 'Missing Skills: ' + results.missing_skills.join(', ');
+            coverLetterTextarea.value = results.cover_letter;
+            // Format resume improvements
+            // const improvements = results.resume_improvements; 
+            // const listItems = improvements.map(item => `<li>${item}</li>`).join('');
+            console.log(results.resume_improvements)
+            renderResumeImprovements(results.resume_improvements, resumeImprovementsDiv); //`<ul>${listItems}</ul>`;
+        } finally {
+            // --- Hide Loading Buffer ---
+            hideLoading();
+        }
     });
 
     copyButton.addEventListener('click', () => {
@@ -85,5 +114,54 @@ document.addEventListener('DOMContentLoaded', function() {
             body: formData
         });
         return await response.json();
+    }
+    function renderResumeImprovements(rawText, container) {
+        container.innerHTML = ''; // Clear any existing content
+    
+        // Create section title
+        const sectionTitle = document.createElement('h2');
+        sectionTitle.textContent = 'Resume improvements';
+        sectionTitle.style.textAlign = 'center'; 
+        container.appendChild(sectionTitle);
+    
+        // Optional intro paragraph
+        const introParagraph = document.createElement('p');
+        introParagraph.textContent = "(These suggestions can help improve your resume's impact)";
+        introParagraph.style.textAlign = 'center'; 
+        container.appendChild(introParagraph);
+    
+        // Create bullet list
+        const list = document.createElement('ul');
+
+        rawText.forEach(text => {
+            const li = document.createElement('li');
+            li.textContent = text;
+            list.appendChild(li);
+        });
+
+        container.appendChild(list);
+    }  
+
+    function showLoading() {
+        loadingDiv.style.display = 'block';
+        loadingText.textContent = loadingMessages[loadingMessageIndex];
+    
+        loadingInterval = setInterval(() => {
+            loadingText.style.opacity = 0;
+    
+            setTimeout(() => {
+                loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
+                loadingText.textContent = loadingMessages[loadingMessageIndex];
+                loadingText.style.opacity = 1;
+            }, 300);
+        }, 2000); // message changes every 2 seconds
+    }
+    
+    function hideLoading() {
+        clearInterval(loadingInterval);
+        loadingDiv.style.display = 'none';
+        loadingMessageIndex = 0;
+        loadingText.textContent = "Analyzing job description...";
+        loadingText.style.opacity = 1;
     }
 });

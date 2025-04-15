@@ -4,6 +4,7 @@ from flask_cors import CORS
 import os
 from cognitive_layers import perception, memory, decision_making, action
 from dotenv import load_dotenv
+from cognitive_layers.decision_making import Skills
 
 load_dotenv()
 
@@ -32,22 +33,27 @@ def process_job_application():
 
     # 1. Perception Layer
     jd_data = perception.parse_job_description(job_text)
+    print(jd_data)
     resume_text = perception.parse_resume(resume_file)
+    print(resume_text)
 
     # 2. Memory Layer
     user_preferences = user_memory.retrieve('user_preferences')
 
     # 3. Decision-Making Layer
-    skills_data = decision_making.match_skills(resume_text, jd_data)
-    resume_improvements_prompt = decision_making.suggest_resume_improvements(resume_text, jd_data)
+    skills_data: Skills = decision_making.match_skills(resume_text, jd_data)
+    print(skills_data)
+    resume_improvements = decision_making.suggest_resume_improvements(resume_text, jd_data)
+    print(resume_improvements)
 
     # 4. Action Layer
-    cover_letter = action.generate_cover_letter(resume_text, jd_data, skills_data['matched_skills'], user_preferences)
-    resume_improvements = action.get_llm_response(resume_improvements_prompt)
+    cover_letter = action.generate_cover_letter(resume_text, jd_data, skills_data.matched_skills, user_preferences)
+    print(cover_letter)
+
 
     return jsonify({
-        'matched_skills': skills_data['matched_skills'],
-        'missing_skills': skills_data['missing_skills'],
+        'matched_skills': skills_data.matched_skills,
+        'missing_skills': skills_data.missing_skills,
         'cover_letter': cover_letter,
         'resume_improvements': resume_improvements
     })
